@@ -7,10 +7,12 @@ let logger = require('./logger');
 function doAction(queue, amqp, handler) {
     amqp.connect(constants.url, function(error0, connection) {
         if (error0) {
+            console.error(error0);
             throw error0;
         }
         connection.createChannel(function(error1, channel) {
             if (error1) {
+                console.error(error1);
                 throw error1;
             }
 
