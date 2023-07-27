@@ -1,9 +1,10 @@
 let amqp = require('amqplib/callback_api');
 let functions = require('./functions')
 let constants = require('./constants');
+let logger = require('./logger');
 
 
-function send(queue, msg, amqp) {
+function doAction(queue, amqp, handler) {
     amqp.connect(constants.url, function(error0, connection) {
         if (error0) {
             throw error0;
@@ -17,41 +18,35 @@ function send(queue, msg, amqp) {
                 durable: false
             });
 
-            channel.sendToQueue(queue, Buffer.from(JSON.stringify(msg)));
-            console.log(" [x] Sent %s", msg);
-
-            setTimeout(function() {
-                connection.close();
-            }, 500);
+            handler(channel, connection)
         });
     });
 }
 
 
-amqp.connect(constants.url, function(error0, connection) {
-    if (error0) {
-        throw error0;
-    }
-    connection.createChannel(function(error1, channel) {
-        if (error1) {
-            throw error1;
-        }
-        var queue = constants.queueFirst;
+function send(queue, msg, amqp) {
+    doAction(queue, amqp, (channel, connection) => {
+        channel.sendToQueue(queue, Buffer.from(JSON.stringify(msg)));
+        logger.info("Send to RabbitMQ: ", msg)
 
-        channel.assertQueue(queue, {
-            durable: false
-        });
+        setTimeout(function() {
+            connection.close();
+        }, 500);
+    })
+}
 
-        console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
+function receive(queue, amqp) {
+    doAction(queue, amqp, (channel, connection) => {
         channel.consume(queue, function(msg) {
-            console.log(" [x] Received %s", msg.content.toString());
             var task = JSON.parse(msg.content.toString())
+            logger.info("Receive from RabbitMQ: ", task)
             send(constants.queueSecond, functions.getProcessTaskResult(task), amqp)
         }, {
             noAck: true
         });
+    })
+}
 
-    });
-});
+receive(constants.queueFirst, amqp)
 
 
