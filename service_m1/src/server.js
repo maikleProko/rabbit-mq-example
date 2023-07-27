@@ -1,18 +1,17 @@
-let express = require('express');
-let bodyParser = require('body-parser');
-let cookieParser = require('cookie-parser');
-let cors = require('cors');
-let http = require('http');
-let logger = require("./logger")
-let routes = require("./routes/index")
-
+const express = require('express');
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+const cors = require('cors');
+const http = require('http');
+const logger = require("./logger")
+const routes = require("./routes/index")
 const app = express();
 const corsOptions = {
-  credentials: true,
-  origin: process.env.FRONTEND_HOST || "http://localhost:3000",
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  allowedHeaders:
-    "Authorization,X-Requested-With,X-HTTP-Method-Override,Content-Type,Cache-Control,Accept,Access-Control-Allow-Origin",
+    credentials: true,
+    origin: process.env.FRONTEND_HOST || "http://localhost:3000",
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    allowedHeaders:
+        "Authorization,X-Requested-With,X-HTTP-Method-Override,Content-Type,Cache-Control,Accept,Access-Control-Allow-Origin",
 };
 
 app.use(cors(corsOptions));

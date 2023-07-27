@@ -1,8 +1,7 @@
 const amqp = require('amqplib');
-const {queueReceive} = require('./rabbitConnector');
 const logger = require('./logger');
-module.exports = {
 
+module.exports = {
     channel: null,
     queueSend: "",
     queueReceive: "",

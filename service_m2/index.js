@@ -1,7 +1,7 @@
-let amqp = require('amqplib/callback_api');
-let functions = require('./functions')
-let constants = require('./constants');
-let logger = require('./logger');
+const amqp = require('amqplib/callback_api');
+const functions = require('./functions')
+const constants = require('./constants');
+const logger = require('./logger');
 
 
 function doAction(queue, amqp, handler) {
@@ -30,7 +30,6 @@ function send(queue, msg, amqp) {
     doAction(queue, amqp, (channel, connection) => {
         channel.sendToQueue(queue, Buffer.from(JSON.stringify(msg)));
         logger.info("Send to RabbitMQ: ", msg)
-
         setTimeout(function() {
             connection.close();
         }, 500);
