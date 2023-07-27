@@ -22,7 +22,7 @@ app.use(cookieParser());
 app.use("/", express.static("public"));
 app.use("/", routes);
 
-const port = +process.env.PORT || 1340;
+const port = +process.env.PORT || 1350;
 
 http.createServer(app).listen(port)
 logger.info(`Server launched on port ${port}`)

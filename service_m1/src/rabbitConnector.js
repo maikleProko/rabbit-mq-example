@@ -4,21 +4,14 @@ module.exports = {
     channel: null,
     queueSend: "",
     queueReceive: "",
+    url: "",
 
     async initialize(queueSend, queueReceive, url) {
         try {
-            const connection = await amqp.connect(url);
-            this.channel = await connection.createChannel();
             this.queueSend = queueSend
             this.queueReceive = queueReceive
+            this.url = url
 
-            await this.channel.assertQueue(this.queueSend, {
-                durable: false
-            });
-
-            await this.channel.assertQueue(this.queueReceive, {
-                durable: false
-            });
         } catch (error) {
             console.error(error);
         }
@@ -27,8 +20,16 @@ module.exports = {
 
     async send(msg) {
         try {
-            console.log("send: " + JSON.stringify(msg))
-            this.channel.sendToQueue(this.queueSend, Buffer.from(JSON.stringify(msg)));
+            const connection = await amqp.connect(this.url);
+            const channel = await connection.createChannel();
+            await channel.assertQueue(this.queueSend, {
+                durable: false
+            });
+            console.log("Send: " + JSON.stringify(msg))
+            channel.sendToQueue(this.queueSend, Buffer.from(JSON.stringify(msg)));
+            setTimeout(function() {
+                connection.close();
+            }, 500);
         } catch (error) {
             console.error(error);
         }
@@ -36,14 +37,22 @@ module.exports = {
 
     async receive() {
         try {
+            const connection = await amqp.connect(this.url);
+            const channel = await connection.createChannel();
+            await channel.assertQueue(this.queueReceive, {
+                durable: false
+            });
             let res = null
-            await new Promise((resolve) => {
-                this.channel.consume(this.queueReceive, (msg) => {
+
+            await new Promise((resolve, reject) => {
+                channel.consume(this.queueReceive, (msg) => {
                     res = msg.content.toString()
-                    console.log("Receive: " + res)
                     resolve(msg);
                 })
             })
+            setTimeout(function() {
+                connection.close();
+            }, 500);
             return res
 
         } catch (error) {

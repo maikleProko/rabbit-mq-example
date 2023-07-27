@@ -10,8 +10,8 @@ let constants = require('../constants');
 })()
 
 tasksRoutes.get("/", async (req, res) => {
-    process = await rabbitConnector.process(req.query)
-    utils.respondSuccess(res, process)
+    let proc = JSON.parse(await rabbitConnector.process(req.query))
+    utils.respondSuccess(res, proc)
 })
 
 module.exports = tasksRoutes
