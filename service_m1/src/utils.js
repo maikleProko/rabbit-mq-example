@@ -8,7 +8,6 @@ module.exports = {
     },
 
     respondSuccess(res, message) {
-        console.log("success")
         res.status(200).json({ status: "done", message });
         logger.info("Request success: ", message);
     }

@@ -6,8 +6,7 @@ const routes = express.Router();
 
 routes.use("/", (req, res, next) => {
   logger.info(req.method, req.url);
-  logger.info("Query:", req.query);
-  logger.info("Body:", req.body);
+  logger.info("Query: ", req.query);
   next();
 });
 

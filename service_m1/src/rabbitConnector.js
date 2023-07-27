@@ -1,4 +1,6 @@
 const amqp = require('amqplib');
+const {queueReceive} = require('./rabbitConnector');
+const logger = require('./logger');
 module.exports = {
 
     channel: null,
@@ -15,21 +17,25 @@ module.exports = {
         } catch (error) {
             console.error(error);
         }
+    },
 
+    async createChannel(queue) {
+        const connection = await amqp.connect(this.url);
+        const channel = await connection.createChannel();
+        await channel.assertQueue(queue, {
+            durable: false
+        });
+        setTimeout(function() {
+            connection.close();
+        }, 500);
+        return channel
     },
 
     async send(msg) {
         try {
-            const connection = await amqp.connect(this.url);
-            const channel = await connection.createChannel();
-            await channel.assertQueue(this.queueSend, {
-                durable: false
-            });
-            console.log("Send: " + JSON.stringify(msg))
+            const channel = await this.createChannel(this.queueSend)
+            logger.info("Send to RabbitMQ: ", msg)
             channel.sendToQueue(this.queueSend, Buffer.from(JSON.stringify(msg)));
-            setTimeout(function() {
-                connection.close();
-            }, 500);
         } catch (error) {
             console.error(error);
         }
@@ -37,22 +43,15 @@ module.exports = {
 
     async receive() {
         try {
-            const connection = await amqp.connect(this.url);
-            const channel = await connection.createChannel();
-            await channel.assertQueue(this.queueReceive, {
-                durable: false
-            });
+            const channel = await this.createChannel(this.queueReceive)
             let res = null
-
             await new Promise((resolve, reject) => {
                 channel.consume(this.queueReceive, (msg) => {
-                    res = msg.content.toString()
+                    res = JSON.parse(msg.content.toString())
                     resolve(msg);
                 })
             })
-            setTimeout(function() {
-                connection.close();
-            }, 500);
+            logger.info("Receive from RabbitMQ: ", res)
             return res
 
         } catch (error) {
